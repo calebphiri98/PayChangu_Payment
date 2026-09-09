@@ -54,7 +54,7 @@ export default function PayPage() {
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? "Redirecting..." : "Pay MK 50"}
+        {loading ? "Redirecting..." : "Pay MK 55"}
       </button>
       {error && <p style={{ color: "#c00", marginTop: 12 }}>{error}</p>}
     </div>
