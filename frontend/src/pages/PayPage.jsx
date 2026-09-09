@@ -14,7 +14,7 @@ export default function PayPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 20,
+          amount: 55,
           currency: "MWK",
           email: "test@example.com",
           first_name: "Test",
