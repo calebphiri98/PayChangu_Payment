@@ -6,9 +6,6 @@ const crypto = require("crypto");
 
 const app = express();
 
-// ---------------------------------------------------------------------------
-// Config — all pulled from .env, nothing hardcoded
-// ---------------------------------------------------------------------------
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -18,8 +15,6 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || FRONTEND_URL)
   .split(",")
   .map((s) => s.trim());
 
-// .trim() guards against a common cause of "invalid key" errors: a stray
-// space or newline copied into .env along with the key.
 const PAYCHANGU_SECRET_KEY = (process.env.PAYCHANGU_SECRET_KEY || "").trim();
 
 if (!PAYCHANGU_SECRET_KEY) {
@@ -27,8 +22,6 @@ if (!PAYCHANGU_SECRET_KEY) {
     "⚠️  PAYCHANGU_SECRET_KEY is not set. Copy .env.example to .env and add it."
   );
 } else if (!PAYCHANGU_SECRET_KEY.startsWith("sec-")) {
-  // PayChangu secret keys start with "sec-" (public keys start with "pub-").
-  // If yours doesn't match, you've likely copied the wrong one.
   console.warn(
     "⚠️  This doesn't look like a PayChangu SECRET key (should start with 'sec-'). " +
     "Double check you copied the Secret Key, not the Public Key, from Settings > API Keys & Webhooks."
@@ -38,10 +31,6 @@ if (!PAYCHANGU_SECRET_KEY) {
 app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json());
 
-// ---------------------------------------------------------------------------
-// 1) Frontend calls this when "Pay" is clicked. We ask PayChangu for a
-//    hosted checkout link, then hand it back to the frontend.
-// ---------------------------------------------------------------------------
 app.post("/api/initiate-payment", async (req, res) => {
   const { amount, currency = "MWK", email, first_name, last_name } = req.body;
 
@@ -80,8 +69,6 @@ app.post("/api/initiate-payment", async (req, res) => {
     if (response.ok && data.status === "success") {
       res.json({ checkout_url: data.data.checkout_url, tx_ref });
     } else {
-      // Surface PayChangu's actual message so the real cause (bad key,
-      // wrong environment, missing field) is visible instead of a generic 400.
       console.error("PayChangu initiate error:", JSON.stringify(data, null, 2));
       res.status(400).json({ error: data.message || "Failed to start payment", detail: data });
     }
@@ -91,9 +78,6 @@ app.post("/api/initiate-payment", async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// 2) Verify a transaction actually succeeded before trusting it.
-// ---------------------------------------------------------------------------
 app.get("/api/verify-payment/:tx_ref", async (req, res) => {
   const { tx_ref } = req.params;
 
